@@ -50,8 +50,8 @@ window.addEventListener('load', function() {
   elem.parentElement.addEventListener('wheel', panzoom.zoomWithWheel)
   resizeMap()
   setTimeout(function() {
-  // panzoom.zoom(2)
-  resizeMap()
+    panzoom.zoom(2)
+    resizeMap()
   // panzoom.zoom(0,0)
   },100)
   // panzoom.pan(0,0)
