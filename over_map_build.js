@@ -338,7 +338,9 @@ class OverMapBuild {
     let obj = this.objects[name]
     let shape = obj.options.shape
     if (shape == 'polygon') {
-      obj.options.coords = obj.svg.array().map(Math.round).join(' ')
+      obj.options.coords = obj.svg.array().map(innerArray => 
+          innerArray.map(value => Math.round(value))
+      );
     } else if (shape == 'ellipse') {
       obj.options.coords = {
         cx: Math.round(obj.svg.cx()),
