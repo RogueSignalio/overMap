@@ -120,9 +120,7 @@ class OverMapBuild {
     gui.main.add( this.current_object, 'name' ).listen();
     gui.main.add( this.current_object, 'shape' ).listen();
     gui.main.add( this.current_object, 'coords' ).listen();
-    gui.main.add( this.current_object, 'type', 
-      // ['none','image','rect','ellipse','polygon','button']
-    ).listen();    
+    gui.main.add( this.current_object, 'type').listen();    
     gui.filters = gui.addFolder( 'Filters' );
 
     for (const filter of Object.keys(this.current_object.filters)) {
@@ -137,8 +135,6 @@ class OverMapBuild {
       }
       let self = this
       fcon.onFinishChange( function( v ) {
-        // console.log( 'Changes complete: ' + self.current_object.name + ','  + this._name + ',' + v );
-        // console.assert( this === controller );
         self.updateFilter(self.current_object.name,this._name,v)
       });
     }
@@ -240,10 +236,8 @@ class OverMapBuild {
         ...shadow,
       }
       let shadow_filter = `drop-shadow(${shadow_map['h']}px ${shadow_map['v']}px ${shadow_map['blur']}px ${shadow_map['color']})`
-      //console.log(shadow_filter)
       filtersCombined.push(shadow_filter)
     }
-//console.log(filtersCombined.join(' '))
     this.objects[name].svg.node.style.filter = filtersCombined.join(' ')
   }
 
@@ -294,7 +288,11 @@ class OverMapBuild {
     obj.id = name;
     obj.type = 'shape';
     if (obj.options.shape == 'polygon') {
-      obj.svg = this.svg_canvas.polygon(obj.options.coords.points)
+      if (obj.options.coords.points) {
+        obj.svg = this.svg_canvas.polygon(obj.options.coords.points)
+      } else {
+        obj.svg = this.svg_canvas.polygon(obj.options.coords)        
+      }
     } else if (obj.options.shape == 'ellipse') {
       obj.svg = this.svg_canvas.ellipse(obj.options.coords)
     } else {
@@ -338,7 +336,7 @@ class OverMapBuild {
     let obj = this.objects[name]
     let shape = obj.options.shape
     if (shape == 'polygon') {
-      obj.options.coords = obj.svg.array().map(innerArray => 
+      obj.options.coords.points = obj.svg.array().map(innerArray => 
           innerArray.map(value => Math.round(value))
       );
     } else if (shape == 'ellipse') {
