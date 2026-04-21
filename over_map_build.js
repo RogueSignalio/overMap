@@ -52,7 +52,9 @@ class OverMapBuild {
     this.draw_params = this.options.draw_params
 
     this.objects = {}
+    this.object_list = []
     this.current_object = {}
+    this.name_list = null
 
     this.filters_map = {
       blur: [0,0,10,1],
@@ -93,6 +95,7 @@ class OverMapBuild {
     for (const filter of Object.keys(this.filters_map)) {
       filter_hash[filter] = this.filters_map[filter][0]
     }
+
     this.current_object = {
       coords: '',
       name: '',
@@ -108,10 +111,16 @@ class OverMapBuild {
       rectangle: function(e) { self.replaceCurrentShape('rect') },
     }
     let gui = this.gui
-    gui.add( this.current_object, 'name' ).listen();
-    gui.add( this.current_object, 'shape' ).listen();
-    gui.add( this.current_object, 'coords' ).listen();
-    gui.add( this.current_object, 'type', 
+    this.name_list = gui.add( this.current_object, 'name',this.object_list ).listen();
+    this.name_list.onFinishChange( function( v ) {
+      self.on_selected(v)
+    });
+
+    gui.main = gui.addFolder( 'Main' );
+    gui.main.add( this.current_object, 'name' ).listen();
+    gui.main.add( this.current_object, 'shape' ).listen();
+    gui.main.add( this.current_object, 'coords' ).listen();
+    gui.main.add( this.current_object, 'type', 
       // ['none','image','rect','ellipse','polygon','button']
     ).listen();    
     gui.filters = gui.addFolder( 'Filters' );
@@ -173,7 +182,7 @@ class OverMapBuild {
   }
 
   on_selected(name) {
-    let t = this.objects[name].svg 
+    let t = this.objects[name].svg
     if (window.selected != t) {
       this.off_selected()
       window.selected = t
@@ -192,13 +201,17 @@ class OverMapBuild {
     this.updateGUI(name)
   }
 
+  updateNameOptions(name) {
+    this.object_list.push(name)
+    this.name_list.options(this.object_list)
+  }
+
   updateFilter(name,filter,value) {
     //console.log('uF:',name,filter,value)
     let obj = this.objects[name].options.filters
     obj[filter] = value
     this.setFilters(name)
   }
-
 
   setFilters(name) {
     let filtersCombined = []
@@ -234,6 +247,7 @@ class OverMapBuild {
   }
 
   addEmbedImage(name,url,options,onclick=function(){}) {
+    this.updateNameOptions(name)
     let obj = {}
     obj.options = {
       shape: 'image',
@@ -265,6 +279,7 @@ class OverMapBuild {
   }
 
   addEmbedShape(name,options,onclick=function(){}) {
+    this.updateNameOptions(name)
     let obj = {}
     obj.options = {
       shape: 'rect',
@@ -297,6 +312,7 @@ class OverMapBuild {
   }
 
   addEmbedButton(name,text,options,onclick=function(){}) {
+    this.updateNameOptions(name)
     this.objects[name].options = {
       // shape: 'rect',
       coords: { x:10, y:10 }, //, width: 10, height: 10 },
