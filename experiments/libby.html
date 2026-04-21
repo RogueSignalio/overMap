@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/lil-gui@0.21"></script>  
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.draw.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.draggable.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.select.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.resize.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.filter.js"></script>
+<script src="over_map.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/RogueSignalio/overBase@v0.1/css/over_demo.min.css" id="page_style">
+<link rel="stylesheet" href="https://unpkg.com/@svgdotjs/svg.resize.js@latest/dist/svg.resize.css" />
+<style>
+  html { font-size: 14px; }
+  body { 
+    margin: 10; flex-wrap: wrap; display: flex; 
+    justify-content: center; align-items: center; 
+  }
+  canvas { border: 2px solid #444; margin:8px; }
+
+  #container {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    background-image: url('https://scramble.roguesignal.io/by_game_asset/GM_CLOCK_TOWER_01/user_group_image_-a_bleak_room'); /* Main Background */
+    background-size: cover;
+    border: 1px solid #ccc;
+    overflow: hidden;
+  }
+
+  .draggable {
+    position: absolute;
+    cursor: grab;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .draggable:active {
+    cursor: grabbing;
+  }
+</style>
+</head>
+<body>
+
+<div id="container">
+  <img src="https://scramble.roguesignal.io/game_uploads/e6cb1a9cf0e4b1ef3cf76d5c746c3b20/4c079f3789abce06905b40aaed3f81a7.png" id="stopwatch" class="draggable" draggable="true" data-x="10" data-y="10">
+  <img src="https://scramble.roguesignal.io/game_uploads/e6cb1a9cf0e4b1ef3cf76d5c746c3b20/0031557a27f299d24f85654a305e0ed5.png" id="fishkey" class="draggable" draggable="true" data-x="150" data-y="50">
+</div>
+<div id="gui" style="height:500px;">
+</div>
+<script>
+  const container = document.getElementById('container');
+  const draggableImages = document.querySelectorAll('.draggable');
+
+  draggableImages.forEach(img => {
+    img.addEventListener('dragstart', (e) => {
+      // Store the initial position relative to the container
+      e.dataTransfer.setData('text/plain', JSON.stringify({
+        x: img.style.left,
+        y: img.style.top,
+      }));
+      e.dataTransfer.setData('id', img.id);
+    });
+  });
+
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault(); // Necessary to allow dropping
+  });
+
+  container.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('id');
+    const img = document.getElementById(id);
+    
+    if (img) {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left - (img.width/2);
+      const y = e.clientY - rect.top - (img.height/2);
+
+      img.style.left = x + 'px';
+      img.style.top = y + 'px';
+    }
+  });
+
+  var canvas_params = {
+    'stroke-width': 2,
+    stroke: "#FFFF00",
+    fill: '#00000001',
+  }
+
+  var objects = {}
+  var idc = 0;
+
+  function on_selected(t) {
+    if (window.selected != t) {
+      if (window.selected != null) {
+        window.selected.resize(false);
+        window.selected.select(false);
+        if (window.selected.type == "polygon") { window.selected.pointSelect(false); }
+      }
+      window.selected = t
+      t.front()
+      t.select().resize(t.resize_params ? t.resize_params : {}); 
+      if (t.type == "polygon") { t.pointSelect(); }
+    }
+    console.log('pick me', this)
+  }
+
+
+  function startImage(id=null) {
+    if (id == null) { id = 'svg_' + idc; idc++ }
+    c = canvas.image('https://scramble.roguesignal.io/game_uploads/e6cb1a9cf0e4b1ef3cf76d5c746c3b20/0031557a27f299d24f85654a305e0ed5.png');
+    // c.filterWith(function(add) {
+    //    var blur = add.offset(25, 25).in(add.$sourceAlpha).gaussianBlur(0.5)
+    //    add.blend(add.$source, blur)
+    // })
+    // c.filterWith(function(add) {
+    //    var blur = add.offset(1, 1).in(add.$sourceAlpha).gaussianBlur(2)
+    //    add.blend(add.$source, blur).colorMatrix('saturate', 0.5)
+    // })
+    c.draggable()
+    c.resize_params = {
+      preserveAspectRatio: true,
+      aroundCenter: true,
+      grid: 2,
+      degree: 0.1,
+    }
+    c.mousedown(function(e) { on_selected(this); })
+    objects[id] = c
+  }
+
+  function startRectangle(id=null) {
+    if (!id) { id = 'svg_' + idc; idc++ }
+    let c = canvas.rect(canvas_params).draw();
+    c.draggable()
+    c.click(function(e) { on_selected(this); })
+    objects[id] = c
+  }
+
+  function startEllipse(id=null) {
+    if (id == null) { id = 'svg_' + idc; idc++ }
+    let c = canvas.ellipse(canvas_params).draw();
+    c.draggable()
+    c.click(function(e) { on_selected(this); })
+    objects[id] = c
+  }
+
+  function startPolygon(id=null) {
+    if (id == null) { id = 'svg_' + idc; idc++ }
+    let poly = canvas.polygon(canvas_params).draw();
+    poly.on('drawstart', function(e){
+      document.addEventListener('keydown', function(e){
+        if(e.keyCode == 13){
+          poly.draw('done');
+          poly.off('drawstart');
+        }
+      });
+    });
+    poly.on('drawstop', function(){
+      // remove listener
+    });
+    poly.draggable()
+    poly.click(function(e) { on_selected(this); })
+    objects[id] = poly
+    return poly
+  }
+
+function parseFilterString(filterString) {
+  if (!filterString || filterString === 'none') return {};
+  
+  return filterString.split(' ').reduce((obj, filter) => {
+    const match = filter.match(/^(\w+)$$(.*)$$$/);
+    if (match) {
+      const [, funcName, value] = match;
+      obj[funcName] = value;
+    }
+    return obj;
+  }, {});
+}
+
+function filterToObject(element){
+  let obj = {}
+  let prop = getComputedStyle( element ).getPropertyValue('filter');
+  let arr = prop.split(/\)\s*?/);
+  for(let i=0; i < arr.length;i++) {
+    let sarr = arr[i].split(/\(|\)/)
+    obj[sarr[0]] = sarr[1]
+  }
+  return obj
+}
+
+function objectToFilter(element,obj={}){
+  let prop = getComputedStyle( element ).getPropertyValue('filter');
+  let filters = []
+
+  for (const key of Object.keys(obj)) {
+     filters.push(`${key}(${obj[key]})`)
+  }
+  return filters.join(' ')
+}
+
+function addFilter( element, filter, value ){
+    let filterValue = `${filter}(${value})`
+    let prop = getComputedStyle( element ).getPropertyValue('filter');
+
+    if( prop === 'none' ){
+        element.style.filter = filterValue;
+    } else {
+        let obj = filterToObject(element)
+          obj[filter]
+        // if( obj[filter] == undefined ) {
+        // }
+        arr.push(filterValue);
+        element.style.filter = arr.join(' ');
+    }
+
+}
+
+function removeFilter( element, filter ){
+    let prop = getComputedStyle( element ).getPropertyValue('filter');
+    if( prop === 'none' ) return;
+    let arr = prop.split(' '),
+        index = arr.indexOf(filterValue)
+    if( index !== -1 ) arr.splice( index, 1 );
+    element.style.filter = arr.join(' ');
+}
+
+var gui;
+var canvas;
+
+window.addEventListener('load', function() {
+  var GUI = lil.GUI;
+  var obj = document.getElementById('stopwatch');
+  var ctrls = {
+    polygon: startPolygon,
+    ellipse: startEllipse,
+    rectangle: startRectangle,
+  }
+  gui = new GUI( { container: document.getElementById( 'gui' ) } );
+  // gui.add( document, 'Image Mapper' );
+  gui.add( obj, 'x' );  // checkbox
+  gui.add( obj, 'y' );   // text field
+  gui.add( obj, 'width' );  // checkbox
+  gui.add( obj, 'height' );   // text field
+  gui.add( ctrls, 'rectangle' );   // text field
+  gui.add( ctrls, 'ellipse' );   // text field
+  gui.add( ctrls, 'polygon' );   // text field
+
+  canvas = new SVG()
+  canvas.addTo('#container').size(500, 500)
+})
+
+</script>
+
+</body>
+</html>   
