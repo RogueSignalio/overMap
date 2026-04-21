@@ -198,6 +198,7 @@ class OverMapBuild {
         }); 
       }
     }
+    this.updateCoords(name)
     this.updateGUI(name)
   }
 
@@ -270,7 +271,10 @@ class OverMapBuild {
       grid: 2,
       degree: 0.1,
     }
-    obj.svg.draggable()
+    obj.svg.draggable().on('dragend', (e) => {
+      self.updateCoords(name)
+      self.updateGUI(name)
+    })
     this.objects[name] = obj
     let self = this
     obj.svg.mousedown(function(e) { self.on_selected(name); })
@@ -334,20 +338,20 @@ class OverMapBuild {
     let obj = this.objects[name]
     let shape = obj.options.shape
     if (shape == 'polygon') {
-      obj.options.coords = obj.svg.array().join(' ')
+      obj.options.coords = obj.svg.array().map(Math.round).join(' ')
     } else if (shape == 'ellipse') {
       obj.options.coords = {
-        cx: obj.svg.cx(),
-        cy: obj.svg.cy(),
-        rx: obj.svg.rx(),
-        ry: obj.svg.ry(),
+        cx: Math.round(obj.svg.cx()),
+        cy: Math.round(obj.svg.cy()),
+        rx: Math.round(obj.svg.rx()),
+        ry: Math.round(obj.svg.ry()),
       }
     } else {
       obj.options.coords = {
-        x: obj.svg.x(),
-        y: obj.svg.y(),
-        width: obj.svg.width(),
-        height: obj.svg.height(),
+        x: Math.round(obj.svg.x()),
+        y: Math.round(obj.svg.y()),
+        width: Math.round(obj.svg.width()),
+        height: Math.round(obj.svg.height()),
       }
     }
   }
