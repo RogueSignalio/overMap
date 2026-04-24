@@ -369,10 +369,14 @@ class OverMapBuild {
   updateCoords(name) {
     let obj = this.objects[name]
     let shape = obj.options.shape
+    if (!obj.options.transforms) { obj.options.transforms = {} }
+
     if (shape == 'polygon') {
       obj.options.coords.points = obj.svg.array().map(innerArray => 
           innerArray.map(value => Math.round(value))
       );
+      obj.options.transforms = Math.round(obj.svg.transform('rotate'))
+
     } else if (shape == 'ellipse') {
       obj.options.coords = {
         cx: Math.round(obj.svg.cx()),
@@ -380,6 +384,16 @@ class OverMapBuild {
         rx: Math.round(obj.svg.rx()),
         ry: Math.round(obj.svg.ry()),
       }
+      obj.options.transforms = Math.round(obj.svg.transform('rotate'))
+
+    } else if (shape == 'image') {
+      obj.options.coords = {
+        x: Math.round(obj.svg.x()),
+        y: Math.round(obj.svg.y()),
+        width: Math.round(obj.svg.width()),
+        height: Math.round(obj.svg.height()),
+      }
+      obj.options.transforms = obj.svg.transform() // Math.round(obj.svg.transform('rotate'))
     } else {
       obj.options.coords = {
         x: Math.round(obj.svg.x()),
@@ -387,9 +401,8 @@ class OverMapBuild {
         width: Math.round(obj.svg.width()),
         height: Math.round(obj.svg.height()),
       }
+      obj.options.transforms = Math.round(obj.svg.transform('rotate'))
     }
-    if (!obj.options.transforms) { obj.options.transforms = {} }
-    obj.options.transforms.rotate = Math.round(obj.svg.transform('rotate'))
   }
 
   replaceCurrentShape(shape) {
