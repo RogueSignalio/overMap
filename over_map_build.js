@@ -31,6 +31,9 @@ class OverMapBuild {
     this.parent_elem.style.backgroundImage = `url('${this.options.map_image}')`;
     this.parent_elem.style.border = '1px solid #ccc'
     this.parent_elem.style.overflow = 'hidden'
+    this.parent_elem.addEventListener('contextmenu', function(event) {
+      event.preventDefault();
+    });
 
 
     this.gui_parent_id = this.options.gui_parent;
@@ -48,7 +51,9 @@ class OverMapBuild {
     this.svg_elem.mousedown(function(e) { 
       self.off_selected();
     })
-
+    this.svg_elem.addEventListener('contextmenu', function(event) {
+      event.preventDefault();
+    });
     this.draw_params = this.options.draw_params
 
     this.objects = {}
@@ -187,6 +192,14 @@ class OverMapBuild {
         createHandle: (group) => group.rect(6, 6).css({ fill: "red" }),
         updateHandle: (shape, p) => shape.center(p[0], p[1]),
       }).resize(t.resize_params ? t.resize_params : {}); 
+      t.on("resize", (event) => {
+        // console.log(event.detail.event.type == "mouseup");
+        if (event.detail.event.type == "mouseup") {
+          this.updateCoords(name)
+          this.updateGUI(name)
+        }
+      });    
+
       if (t.type == "polygon") { 
         t.pointSelect({
           createHandle: (group) => group.circle(6).css({ fill: "blue" }),
@@ -241,6 +254,20 @@ class OverMapBuild {
     this.objects[name].svg.node.style.filter = filtersCombined.join(' ')
   }
 
+  setTransforms(name) {
+    let transformsCombined = []
+    let obj = this.objects[name].options.transforms ? this.objects[name].options.transforms : {}
+    let h = { } //origin: {x: 50, y: 50} }
+    for (const key of Object.keys(obj)) {
+      //console.log(key)
+      let value = obj[key]
+      h[key]=value
+//      transformsCombined.push(`${key}(${value})`)
+    }
+    this.objects[name].svg.transform(h)
+//    this.objects[name].svg.attr('transform', transformsCombined.join(' '))
+  }
+
   addEmbedImage(name,url,options,onclick=function(){}) {
     this.updateNameOptions(name)
     let obj = {}
@@ -253,6 +280,7 @@ class OverMapBuild {
     obj.type = 'image'
     obj.src = url;
     obj.id = name;
+
     obj.svg = this.svg_canvas.image(obj.src)
     obj.svg.attr(
       obj.options.coords
@@ -271,9 +299,14 @@ class OverMapBuild {
     })
     this.objects[name] = obj
     let self = this
-    obj.svg.mousedown(function(e) { self.on_selected(name); })
-    this.setFilters(name)
-
+    obj.svg.mousedown(function(e) { 
+      self.on_selected(name); 
+    })
+    obj.svg.on('load', function (e) {
+      // this is the loading event for the svg image
+      self.setTransforms(name)
+      self.setFilters(name)
+    })
   }
 
   addEmbedShape(name,options,onclick=function(){}) {
@@ -301,6 +334,7 @@ class OverMapBuild {
     obj.svg.attr(this.draw_params)
     obj.svg.attr({ id: name })
     this.objects[name] = obj
+    this.setTransforms(name)
     this.setFilters(name)
     obj.svg.draggable()
     let self = this
@@ -354,6 +388,7 @@ class OverMapBuild {
         height: Math.round(obj.svg.height()),
       }
     }
+    obj.options.transforms.rotate = Math.round(obj.svg.transform('rotate'))
   }
 
   replaceCurrentShape(shape) {
@@ -403,6 +438,12 @@ class OverMapBuild {
     this.off_selected()
     let c = this.svg_canvas.polygon(this.draw_params).draw();
     c.on('drawstart', function(e){
+      document.addEventListener('mousedown', (event) => {
+        if (event.button === 2) {
+          c.draw('done');
+          c.off('drawstart');
+        }
+      });
       document.addEventListener('keydown', function(e){
         if(e.keyCode == 13){
           c.draw('done');

@@ -28,7 +28,8 @@
   const container = document.getElementById('container');
   var omap = null
 
-  window.addEventListener('load', function() {
+  // window.addEventListener('load', function() {
+  SVG.on(document, 'DOMContentLoaded', function() {
     omap = new OverMapBuild({
       parent: 'container',
       gui_parent: 'gui',
@@ -39,8 +40,14 @@
     omap.addEmbedShape('shape01',{ shape: 'rect', coords: { x: 200, y: 200, width: 50, height: 50 }})
     omap.addEmbedShape('shape02',{ shape: 'ellipse', coords: { cx: 300, cy: 300, rx: 40, ry: 45 }})
     omap.addEmbedShape('shape03',{ shape: 'polygon', coords: { points: "39,49 131,102 44,138" }})
-    omap.addEmbedShape('shape04',{ shape: 'polygon', coords: { points: [[59,49],[151,102],[64,138]] }})
-    omap.addEmbedImage('lala2',"./assets/fishkey_embed.png",{ coords: { x:200,y:10 }, filters: { saturate: 0.75 }})
+    omap.addEmbedShape('shape04',{ shape: 'polygon', transforms: { rotate: 90 }, coords: { points: [[59,49],[151,102],[64,138]] }})
+    omap.addEmbedImage('lala1',"./assets/fishkey_embed.png",{ coords: { x:200,y:10 } })
+    omap.addEmbedImage('lala2',"./assets/fishkey_embed.png",{ coords: { x:200,y:110 }, 
+      filters: { saturate: 0.75 },
+      transforms: {
+        "rotate": 90,
+      }
+    })
   })
 
 </script>
