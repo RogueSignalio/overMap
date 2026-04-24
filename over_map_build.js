@@ -388,6 +388,7 @@ class OverMapBuild {
         height: Math.round(obj.svg.height()),
       }
     }
+    if (!obj.options.transforms) { obj.options.transforms = {} }
     obj.options.transforms.rotate = Math.round(obj.svg.transform('rotate'))
   }
 
