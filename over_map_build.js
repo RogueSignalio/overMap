@@ -57,9 +57,12 @@ class OverMapBuild {
     this.draw_params = this.options.draw_params
 
     this.objects = {}
+    this.objects_by_name = {}
     this.object_list = []
+    this.object_name_list = []
     this.current_object = {}
     this.name_list = null
+    this.id_list = null
 
     this.filters_map = {
       blur: [0,0,10,1],
@@ -74,25 +77,21 @@ class OverMapBuild {
       drop_shadow_v: [0,-10,10,1],
       drop_shadow_blur: [0,0,20,0.5],
       drop_shadow_color: ['#000000'],
-      // "#000000",
-// hue-rotate(deg): Rotates the hue around the color circle (0–360 degrees).
-// invert(%): Inverts color samples; 0% is normal, 100% is fully inverted.
-// drop-shadow(h v blur spread color): Applies a drop shadow wi
     }
 
     this.drawGUI()
   }
 
-  getObject(name) {
-    return this.objects[name]
+  getObject(id) {
+    return this.objects[id]
   }
 
-  getObjectSave(name) {
-    return this.objects[name].options
+  getObjectSave(id) {
+    return this.objects[id].options
   }
 
-  getObjectElement(name) {
-    return this.objects[name].svg.node
+  getObjectElement(id) {
+    return this.objects[id].svg.node
   }
 
   drawGUI() {
@@ -104,11 +103,12 @@ class OverMapBuild {
     this.current_object = {
       coords: '',
       name: '',
+      id: '', 
       shape: '',
       type: '',
       filters: filter_hash,
     }
-    // console.log(this.current_object)
+
     let self = this
     let ctrls = {
       polygon: function(e) { self.replaceCurrentShape('polygon') },
@@ -116,12 +116,18 @@ class OverMapBuild {
       rectangle: function(e) { self.replaceCurrentShape('rect') },
     }
     let gui = this.gui
+    this.id_list = gui.add( this.current_object, 'id',this.object_list ).listen();
+    this.id_list.onFinishChange( function( v ) {
+      self.on_selected(v)
+    });
     this.name_list = gui.add( this.current_object, 'name',this.object_list ).listen();
     this.name_list.onFinishChange( function( v ) {
-      self.on_selected(v)
+      let obj = self.objects_by_name[v]
+      self.on_selected(obj.id)
     });
 
     gui.main = gui.addFolder( 'Main' );
+    gui.main.add( this.current_object, 'id' ).listen();
     gui.main.add( this.current_object, 'name' ).listen();
     gui.main.add( this.current_object, 'shape' ).listen();
     gui.main.add( this.current_object, 'coords' ).listen();
@@ -140,7 +146,7 @@ class OverMapBuild {
       }
       let self = this
       fcon.onFinishChange( function( v ) {
-        self.updateFilter(self.current_object.name,this._name,v)
+        self.updateFilter(self.current_object.id,this._id,v)
       });
     }
     gui.filters.hide();
@@ -153,11 +159,11 @@ class OverMapBuild {
 
   }
 
-  updateGUI(name) {
-    //console.log('update...')
-    let obj = this.objects[name]
+  updateGUI(id) {
+    let obj = this.objects[id]
     this.current_object.coords = JSON.stringify(obj.options.coords)
-    this.current_object.name = name
+    this.current_object.name = obj.name
+    this.current_object.id = obj.id
     this.current_object.shape = obj.options.shape
     this.current_object.type = obj.type
     for (const filter of Object.keys(this.current_object.filters)) {
@@ -182,8 +188,8 @@ class OverMapBuild {
     }
   }
 
-  on_selected(name) {
-    let t = this.objects[name].svg
+  on_selected(id) {
+    let t = this.objects[id].svg
     if (window.selected != t) {
       this.off_selected()
       window.selected = t
@@ -193,10 +199,13 @@ class OverMapBuild {
         updateHandle: (shape, p) => shape.center(p[0], p[1]),
       }).resize(t.resize_params ? t.resize_params : {}); 
       t.on("resize", (event) => {
-        // console.log(event.detail.event.type == "mouseup");
+        console.log(event.detail);
         if (event.detail.event.type == "mouseup") {
-          this.updateCoords(name)
-          this.updateGUI(name)
+          this.updateCoords(id)
+          this.updateGUI(id)
+        }
+        if (event.detail.eventType == "rot") {
+          this.updateCoords(id)
         }
       });    
 
@@ -207,29 +216,33 @@ class OverMapBuild {
         }); 
       }
     }
-    this.updateCoords(name)
-    this.updateGUI(name)
+    this.updateCoords(id)
+    this.updateGUI(id)
+  }
+
+  updateIDOptions(id) {
+    this.object_list.push(id)
+    this.id_list.options(this.object_list)
   }
 
   updateNameOptions(name) {
-    this.object_list.push(name)
-    this.name_list.options(this.object_list)
+    this.object_name_list.push(name)
+    this.name_list.options(this.object_name_list)
   }
 
-  updateFilter(name,filter,value) {
-    //console.log('uF:',name,filter,value)
-    let obj = this.objects[name].options.filters
+  updateFilter(id,filter,value) {
+    //console.log('uF:',id,filter,value)
+    let obj = this.objects[id].options.filters
     obj[filter] = value
-    this.setFilters(name)
+    this.setFilters(id)
   }
 
-  setFilters(name) {
+  setFilters(id) {
     let filtersCombined = []
-    let obj = this.objects[name].options.filters
+    let obj = this.objects[id].options.filters
     let shadow = {}
 
     for (const key of Object.keys(obj)) {
-      //console.log(key)
       let value = obj[key]
       if (!key.match(/shadow/g)) {
         if (key == 'blur') { value = value + 'px'; }
@@ -251,41 +264,43 @@ class OverMapBuild {
       let shadow_filter = `drop-shadow(${shadow_map['h']}px ${shadow_map['v']}px ${shadow_map['blur']}px ${shadow_map['color']})`
       filtersCombined.push(shadow_filter)
     }
-    this.objects[name].svg.node.style.filter = filtersCombined.join(' ')
+    this.objects[id].svg.node.style.filter = filtersCombined.join(' ')
   }
 
-  setTransforms(name) {
+  setTransforms(id) {
     let transformsCombined = []
-    let obj = this.objects[name].options.transforms ? this.objects[name].options.transforms : {}
+    let obj = this.objects[id].options.transforms ? this.objects[id].options.transforms : {}
     let h = { } //origin: {x: 50, y: 50} }
     for (const key of Object.keys(obj)) {
-      //console.log(key)
       let value = obj[key]
       h[key]=value
-//      transformsCombined.push(`${key}(${value})`)
     }
-    this.objects[name].svg.transform(h)
-//    this.objects[name].svg.attr('transform', transformsCombined.join(' '))
+    this.objects[id].svg.transform(h)
   }
 
-  addEmbedImage(name,url,options,onclick=function(){}) {
-    this.updateNameOptions(name)
+  addEmbedImage(id,name,url,options,onclick=function(){}) {
     let obj = {}
+    this.updateIDOptions(id)
+    this.updateNameOptions(name)
+    this.objects[id] = obj
+    this.objects_by_name[name] = this.objects[id]
+    obj.type = 'image'
+    obj.src = url;
+    obj.id = id;
+    obj.name = name;
     obj.options = {
       shape: 'image',
       coords: { x:10, y:10 },
       filters: { },
       ...options
     }
-    obj.type = 'image'
-    obj.src = url;
-    obj.id = name;
 
     obj.svg = this.svg_canvas.image(obj.src)
     obj.svg.attr(
       obj.options.coords
     )
-    obj.svg.attr({ id: name })
+    obj.svg.attr({ id: id })
+    obj.svg.attr({ name: name })
 
     obj.svg.resize_params = {
       preserveAspectRatio: true,
@@ -294,31 +309,36 @@ class OverMapBuild {
       degree: 0.1,
     }
     obj.svg.draggable().on('dragend', (e) => {
-      self.updateCoords(name)
-      self.updateGUI(name)
+      self.updateCoords(id)
+      self.updateGUI(id)
     })
-    this.objects[name] = obj
     let self = this
     obj.svg.mousedown(function(e) { 
-      self.on_selected(name); 
+      self.on_selected(id); 
     })
     obj.svg.on('load', function (e) {
       // this is the loading event for the svg image
-      self.setTransforms(name)
-      self.setFilters(name)
+      // transforms are being super annoying...
+      setTimeout(function() { self.setTransforms(id); },1)
+      self.setFilters(id)
     })
   }
 
-  addEmbedShape(name,options,onclick=function(){}) {
-    this.updateNameOptions(name)
+  addEmbedShape(id,name,options,onclick=function(){}) {
     let obj = {}
+    this.updateIDOptions(id)
+    this.updateNameOptions(name)
+    this.objects[id] = obj
+    this.objects_by_name[name] = this.objects[id]
+
     obj.options = {
       shape: 'rect',
       coords: { x:10, y:10, width: 30, height: 30 },
       filters: { },
       ...options
     };
-    obj.id = name;
+    obj.id = id;
+    obj.name = name;
     obj.type = 'shape';
     if (obj.options.shape == 'polygon') {
       if (obj.options.coords.points) {
@@ -332,42 +352,41 @@ class OverMapBuild {
       obj.svg = this.svg_canvas.rect(obj.options.coords)
     }
     obj.svg.attr(this.draw_params)
-    obj.svg.attr({ id: name })
-    this.objects[name] = obj
-    this.setTransforms(name)
-    this.setFilters(name)
+    obj.svg.attr({ id: id })
+    obj.svg.attr({ name: name })
+
+    this.setTransforms(id)
+    this.setFilters(id)
     obj.svg.draggable()
     let self = this
     obj.svg.draggable().on('dragend', (e) => {
-      self.updateCoords(name)
-      self.updateGUI(name)
+      self.updateCoords(id)
+      self.updateGUI(id)
     })
-    obj.svg.mousedown(function(e) { self.on_selected(name); })
-
-
+    obj.svg.mousedown(function(e) { self.on_selected(id); })
   }
 
-  addEmbedButton(name,text,options,onclick=function(){}) {
-    this.updateNameOptions(name)
-    this.objects[name].options = {
+  addEmbedButton(id,name,text,options,onclick=function(){}) {
+    this.updateNameOptions(id)
+    this.objects[id].options = {
       // shape: 'rect',
       coords: { x:10, y:10 }, //, width: 10, height: 10 },
       filters: { },
       ...options
     };
-    this.objects[name].text = text;
-    this.objects[name].id = name;
-    this.objects[name].svg = this.svg_canvas.rect(this.objects[name].options.coords)
-    this.objects[name].svg.attr(this.draw_params)
-    this.objects[name].svg.attr({ id: name })
-    this.setFilters(name)
-    this.objects[name].svg.draggable()
+    this.objects[id].text = text;
+    this.objects[id].id = id;
+    this.objects[id].svg = this.svg_canvas.rect(this.objects[id].options.coords)
+    this.objects[id].svg.attr(this.draw_params)
+    this.objects[id].svg.attr({ id: id })
+    this.setFilters(id)
+    this.objects[id].svg.draggable()
     let self = this
-    this.objects[name].svg.mousedown(function(e) { self.on_selected(name); })
+    this.objects[id].svg.mousedown(function(e) { self.on_selected(id); })
   }
 
-  updateCoords(name) {
-    let obj = this.objects[name]
+  updateCoords(id) {
+    let obj = this.objects[id]
     let shape = obj.options.shape
     if (!obj.options.transforms) { obj.options.transforms = {} }
 
@@ -406,11 +425,11 @@ class OverMapBuild {
   }
 
   replaceCurrentShape(shape) {
-    this.replaceShape(this.current_object['name'],shape)
+    this.replaceShape(this.current_object['id'],shape)
   }
 
-  replaceShape(name,shape) {
-    let obj = this.objects[name]
+  replaceShape(id,shape) {
+    let obj = this.objects[id]
     this.off_selected()
     obj.svg.remove()
     if (shape == 'polygon') {
@@ -420,18 +439,18 @@ class OverMapBuild {
     } else {
       obj.svg = this.startRectangle()
     }
-    obj.svg.attr({ id: name })
+    obj.svg.attr({ id: id })
     obj.options.shape = shape
 
     let self = this
     obj.svg.on('drawdone', function(event){
-      self.updateCoords(name)
-      self.setFilters(name)
+      self.updateCoords(id)
+      self.setFilters(id)
     });
     obj.svg.draggable().on('dragend', (e) => {
-      self.updateCoords(name)
+      self.updateCoords(id)
     })
-    obj.svg.mousedown(function(e) { self.on_selected(name); })
+    obj.svg.mousedown(function(e) { self.on_selected(id); })
   }
 
   startRectangle() {
