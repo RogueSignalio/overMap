@@ -146,7 +146,7 @@ class OverMapBuild {
       }
       let self = this
       fcon.onFinishChange( function( v ) {
-        self.updateFilter(self.current_object.id,this._id,v)
+        self.updateFilter(self.current_object.id,this._name,v)
       });
     }
     gui.filters.hide();
@@ -231,7 +231,6 @@ class OverMapBuild {
   }
 
   updateFilter(id,filter,value) {
-    //console.log('uF:',id,filter,value)
     let obj = this.objects[id].options.filters
     obj[filter] = value
     this.setFilters(id)
