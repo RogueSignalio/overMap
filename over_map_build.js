@@ -94,6 +94,11 @@ class OverMapBuild {
     return this.objects[id].svg.node
   }
 
+  getSVG() {
+    this.off_selected()
+    return this.svg_canvas.svg()
+  }
+
   drawGUI() {
     let filter_hash = {}
     for (const filter of Object.keys(this.filters_map)) {
