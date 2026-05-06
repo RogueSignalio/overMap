@@ -150,7 +150,7 @@ class OverMapBuild {
         fcon = gui.filters.add( this.current_object.filters, filter,fmap[1],fmap[2],fmap[3]).listen() ;
       }
       let self = this
-      fcon.onFinishChange( function( v ) {
+      fcon.onChange( function( v ) {
         self.updateFilter(self.current_object.id,this._name,v)
       });
     }
