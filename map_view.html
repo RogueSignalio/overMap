@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/lil-gui@0.21"></script>  
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.draw.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.draggable.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.select.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.resize.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.filter.js"></script>
+<script src="over_map_build.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/RogueSignalio/overBase@v0.1/css/over_demo.min.css" id="page_style">
+<link rel="stylesheet" href="https://unpkg.com/@svgdotjs/svg.resize.js@latest/dist/svg.resize.css" />
+<style>
+  body { 
+    margin: 10; flex-wrap: wrap; display: flex; 
+    justify-content: center; align-items: center; overflow: auto;
+  }
+</style>
+</head>
+<body>
+
+<div id="container">
+</div>
+<div id="gui" style="height:500px;">
+</div>
+<script>
+  const container = document.getElementById('container');
+  var omap = null
+
+  window.addEventListener('load', function() {
+    omap = new OverMapBuild({
+      parent: 'container',
+      gui_parent: 'gui',
+      width: 600,
+      height: 600,
+      map_image: './assets/example1.png',
+    })
+    omap.addEmbedShape('shape01',{ shape: 'rect', coords: { x: 200, y: 200, width: 50, height: 50 }})
+    omap.addEmbedShape('shape02',{ shape: 'ellipse', coords: { cx: 300, cy: 300, rx: 40, ry: 45 }})
+    omap.addEmbedShape('shape03',{ shape: 'polygon', coords: { points: "39,49 131,102 44,138" }})
+    omap.addEmbedShape('shape04',{ shape: 'polygon', coords: { points: [[59,49],[151,102],[64,138]] }})
+    omap.addEmbedImage('lala2',"./assets/fishkey_embed.png",{ coords: { x:200,y:10 }, filters: { saturate: 0.75 }})
+  })
+
+</script>
+
+</body>
+</html>   

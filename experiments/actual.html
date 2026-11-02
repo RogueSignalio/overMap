@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<script src="https://unpkg.com/@panzoom/panzoom@4.6.2/dist/panzoom.min.js"></script>
+<script src="./over_map.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/RogueSignalio/overBase@v0.1/css/over_demo.min.css" id="page_style">
+  <style>
+    html { font-size: 14px; }
+    body { margin: 20px; background-color: #000000; overflow: auto; }
+/*    .outerdiv { 
+        margin: auto; 
+        flex-wrap: wrap; 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+      }
+*/
+
+  </style>
+</head>
+<body >
+<div class="outerdiv">
+<div id="group-static" style="border:0px solid #FF0000;margin:auto;width:400px;height:400px;position:relative;overflow: hidden;"></div>
+<div id="group-static2" style="border:0px solid #FF0000;margin:auto;width:400px;height:400px;position:relative;overflow: hidden;"></div>
+</div>
+<script>
+let SW = { ui: {} }
+SW.ui.open_task = function(task_id) {  alert('Open Task: ' + task_id, '#ABBDDE' ) }
+SW.ui.simple_task = function(task_id) {  alert('Simple Task: ' + task_id, '#BDDEAB' ) }
+SW.ui.simple_alert = function(task_id) {  alert('Simple Task: ' + task_id, '#FFaaaa' ) }
+
+let om = new OverMap({
+  parent: 'group-static',
+  background: './example4.jpg',  
+  launch_mode: 'icon',
+  look_around: true,
+  // look_around_max: 2,
+  global_look_around_max: 2,
+  panzoom_height: 600,
+  svg_base: `
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 650 650" width="650" height="650"></svg>
+  `,
+  svg_elements: [
+    `<ellipse rx="37" ry="67" cx="330" cy="215" stroke-width="2" stroke="#ffff00" fill="#00000001" id="TSK_SCRAMBLED_0031" name="shape02" transform="matrix(1,0,0,1,0,0)" ></ellipse>`,
+    `<image width="54" height="54" xlink:href="mushroom_embedded.png" x="394" y="305" id="TSK_SCRAMBLED_0032" name="Test " transform="matrix(1,0,0,1,0,0)" style="filter: saturate(1) sepia(0) grayscale(0) brightness(0.8) contrast(1) blur(0px) drop-shadow(rgb(0, 0, 0) 3px 1px 1px);"></image>`,
+    `<image width="40" height="40" xlink:href="fishkey_embed.png" x="334.11316535603" y="470.4816422399639" id="TSK_SCRAMBLED_0033" name="Test 2" transform="matrix(0.6807208689589177,-0.7325428987873785,0.7325428987873785,0.6807208689589177,-396.7202992945071,503.83332351530123)" style="filter: saturate(1.7) sepia(0) grayscale(0) brightness(0.8) contrast(1.4) blur(0px) drop-shadow(rgb(0, 0, 0) -2px 1px 0.5px);"></image>`,
+  ],
+  svg_actions: [
+    ['TSK_SCRAMBLED_0031',SW.ui.simple_task],
+    ['TSK_SCRAMBLED_0032',SW.ui.open_task],
+    ['TSK_SCRAMBLED_0033',SW.ui.simple_task],
+  ]
+
+})
+
+let om2 = new OverMap({
+  parent: 'group-static2',
+  background: './example4.jpg',  
+  launch_mode: 'icon',
+  look_around: true,
+  // look_around_max: 2,
+  global_look_around_max: 2,
+  panzoom_height: 600,
+  svg_base: `
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 650 650" width="650" height="650"></svg>
+  `,
+  svg_elements: [
+    `<ellipse rx="37" ry="67" cx="330" cy="215" stroke-width="2" stroke="#ffff00" fill="#00000001" id="s02" name="shape02" transform="matrix(1,0,0,1,0,0)" ></ellipse>`,
+    `<image width="54" height="54" xlink:href="mushroom_embedded.png" x="394" y="305" id="TSK_SCRAMBLED_0032" name="Test " transform="matrix(1,0,0,1,0,0)" style="filter: saturate(1) sepia(0) grayscale(0) brightness(0.8) contrast(1) blur(0px) drop-shadow(rgb(0, 0, 0) 3px 1px 1px);"></image>`,
+    `<image width="40" height="40" xlink:href="fishkey_embed.png" x="334.11316535603" y="470.4816422399639" id="TSK_SCRAMBLED_0033" name="Test 2" transform="matrix(0.6807208689589177,-0.7325428987873785,0.7325428987873785,0.6807208689589177,-396.7202992945071,503.83332351530123)" style="filter: saturate(1.7) sepia(0) grayscale(0) brightness(0.8) contrast(1.4) blur(0px) drop-shadow(rgb(0, 0, 0) -2px 1px 0.5px);"></image>`,
+  ],
+  svg_actions: [
+    ['TSK_SCRAMBLED_0031',SW.ui.simple_alert],
+    ['TSK_SCRAMBLED_0032',SW.ui.open_task],
+    ['TSK_SCRAMBLED_0033',SW.ui.simple_task],
+  ]
+
+})
+
+// Override the default alert function
+window.alert = function(message,backgroundColor="#fff") {
+    // Create a custom alert container
+    const alertBox = document.createElement('div');
+    alertBox.style.color = '#000000';
+    alertBox.style.position = 'fixed';
+    alertBox.style.top = '50%';
+    alertBox.style.left = '50%';
+    alertBox.style.transform = 'translate(-50%, -50%)';
+    alertBox.style.backgroundColor = backgroundColor;
+    alertBox.style.border = '2px solid #000';
+    alertBox.style.padding = '20px';
+    alertBox.style.borderRadius = '8px';
+    alertBox.style.boxShadow = '0 10px 10px rgba(0,0,0,0.3)';
+    alertBox.style.zIndex = '10000';
+    alertBox.style.maxWidth = '300px';
+    alertBox.style.textAlign = 'center';
+
+    // Add message
+    const messageEl = document.createElement('p');
+    messageEl.textContent = message;
+    messageEl.style.marginBottom = '15px';
+
+    // Add OK button
+    const okBtn = document.createElement('button');
+    okBtn.textContent = 'OK';
+    okBtn.style.padding = '8px 16px';
+    // okBtn.style.backgroundColor = '#555555';
+    // okBtn.style.color = '#fff';
+    okBtn.style.border = 'none';
+    okBtn.style.borderRadius = '4px';
+    okBtn.style.cursor = 'pointer';
+    okBtn.onclick = () => {
+        document.body.removeChild(alertBox);
+    };
+
+    // Append elements
+    alertBox.appendChild(messageEl);
+    alertBox.appendChild(okBtn);
+    document.body.appendChild(alertBox);
+};
+
+</script>
+</body>

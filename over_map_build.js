@@ -65,13 +65,14 @@ class OverMapBuild {
     this.id_list = null
 
     this.filters_map = {
-      blur: [0,0,10,1],
+      blur: [0,0,10,0.1],
       brightness: [1.0,0,10.0,0.1],
       contrast: [1.0,0,10.0,0.1],
       grayscale: [0.0,0,1,0.1],
       opacity: [1.0,0.1,1.0,0.1],
       saturate: [1.0,0,10,0.1],
       sepia: [0.0,0,1.0,0.1],
+      "hue-rotate": [0,-360,360,1],
       drop_shadow_on: [false],
       drop_shadow_h: [0,-10,10,1],
       drop_shadow_v: [0,-10,10,1],
@@ -250,6 +251,7 @@ class OverMapBuild {
       let value = obj[key]
       if (!key.match(/shadow/g)) {
         if (key == 'blur') { value = value + 'px'; }
+        if (key == 'hue-rotate') { value = value + 'deg'; console.log(value); }
         filtersCombined.push(`${key}(${value})`)
       } else {
         let shadow_key = key.split('_').pop()
