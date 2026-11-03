@@ -184,8 +184,11 @@ class OverMap {
           }
         });
         svg_el.addEventListener('pointerup', function(event) {
-          // console.log('svge_up ' + window.pz_click_up_abort)
-          if (!window.pz_click_up_abort) action[1](this.id)
+          console.log('svge_up ' + window.pz_click_up_abort)
+          if (!window.pz_click_up_abort) {
+          console.log('svge_up ' + action[1] + '("' + action[0] + '")')
+            action[1](action[0])
+          }
         });
       }
     }

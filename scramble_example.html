@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<script src="https://unpkg.com/@panzoom/panzoom@4.6.2/dist/panzoom.min.js"></script>
+<script src="./over_map.js"></script>
+<script src="./scramble_map.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/RogueSignalio/overBase@v0.1/css/over_demo.min.css" id="page_style">
+  <style>
+    html { font-size: 14px; }
+    body { margin: 20px; background-color: #000000; overflow: auto; }
+  </style>
+</head>
+<body >
+<div class="outerdiv">
+<div id="group-static" style="border:0px solid #FF0000;margin:auto;width:400px;height:400px;position:relative;overflow: hidden;"></div>
+</div>
+<script>
+let SW = { ui: {} }
+SW.ui.open_task_id = function open_task_id(task_id) {  alert('Open Task: ' + task_id, '#ABBDDE' ) }
+SW.ui.simple_task_id = function simple_task_id(task_id) {  alert('Simple Task: ' + task_id, '#BDDEAB' ) }
+SW.ui.simple_alert = function(task_id) {  alert('Simple Task: ' + task_id, '#FFaaaa' ) }
+
+document.addEventListener('DOMContentLoaded', function() {
+  window.om = new ScrambleMap('group-static',task_group,task_list,{
+        simple_task_func: SW.ui.simple_task_id,
+        open_task_func: SW.ui.open_task_id,
+  })
+})
+
+// Override the default alert function
+window.alert = function(message,backgroundColor="#fff") {
+    // Create a custom alert container
+    const alertBox = document.createElement('div');
+    alertBox.style.color = '#000000';
+    alertBox.style.position = 'fixed';
+    alertBox.style.top = '50%';
+    alertBox.style.left = '50%';
+    alertBox.style.transform = 'translate(-50%, -50%)';
+    alertBox.style.backgroundColor = backgroundColor;
+    alertBox.style.border = '2px solid #000';
+    alertBox.style.padding = '20px';
+    alertBox.style.borderRadius = '8px';
+    alertBox.style.boxShadow = '0 10px 10px rgba(0,0,0,0.3)';
+    alertBox.style.zIndex = '10000';
+    alertBox.style.maxWidth = '300px';
+    alertBox.style.textAlign = 'center';
+
+    // Add message
+    const messageEl = document.createElement('p');
+    messageEl.textContent = message;
+    messageEl.style.marginBottom = '15px';
+
+    // Add OK button
+    const okBtn = document.createElement('button');
+    okBtn.textContent = 'OK';
+    okBtn.style.padding = '8px 16px';
+    // okBtn.style.backgroundColor = '#555555';
+    // okBtn.style.color = '#fff';
+    okBtn.style.border = 'none';
+    okBtn.style.borderRadius = '4px';
+    okBtn.style.cursor = 'pointer';
+    okBtn.onclick = () => {
+        document.body.removeChild(alertBox);
+    };
+
+    // Append elements
+    alertBox.appendChild(messageEl);
+    alertBox.appendChild(okBtn);
+    document.body.appendChild(alertBox);
+};
+
+let task_group = {
+  "id": 210,
+  "type": "TaskGroup",
+  "uuid": "TG_SCRAMBLED_0002",
+  "title": "Engine Room",
+  "name": "Engine Room",
+  "description": null,
+  "order": 2,
+  "completed": false,
+  "relation_id": 1718,
+  "locked": false,
+  "ref_id": "TG_SCRAMBLED_0002",
+  "group_display_mode": "landscape",
+  "task_display_mode": "list",
+  "group_description_show": false,
+  "group_stats_show": false,
+  "asset_url": "http://127.0.0.1:3000/by_game_asset/GM_SCRAMBLED/user-task_engine_room",
+  "asset_type": "image",
+  "pan_asset_url": "http://127.0.0.1:3000/by_game_asset/GM_SCRAMBLED/user_group_image_pan_-engine_room",
+  "pan_asset_type": "image",
+  "challenges": 6,
+  "estimated_time": null,
+  "achievements": 0,
+  "page_open": null,
+  "pan_zoom": true,
+  "embedded_svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 650 650\" width=\"650\" height=\"650\"></svg>",
+  "checksum": "3913dfaf1544d986bd62a98823730d24"
+}
+
+let task_list = [
+  {
+    "uuid": "TSK_SCRAMBLED_0005",
+    "name": "Power Relay A1",
+    "list_asset_type": null,
+    "list_display_type": "embedded_area",
+    "embedded": true,
+    "embedded_svg": "<rect width=\"19\" height=\"16\" x=\"576\" y=\"365\" stroke-width=\"2\" stroke=\"#ffff00\" fill=\"#00000001\" id=\"TSK_SCRAMBLED_0005\" name=\"Power Relay A1\" transform=\"matrix(1,0,0,1,0,0)\"></rect>",
+    "list_inject_js": null,
+    "inline_view": false,
+    "inline_view_maximize": false,
+    "relation_id": "TSK_SCRAMBLED_0005",
+    "ref_id": "TSK_SCRAMBLED_0005",
+    "display_type": "string",
+    "checksum": "294e3ba783b7704be7da92225789b0f9"
+  },
+  {
+    "uuid": "TSK_SCRAMBLED_0006",
+    "name": "Power Relay A2",
+    "list_asset_type": null,
+    "list_display_type": "embedded_area",
+    "embedded": true,
+    "embedded_svg": "<polygon points=\"183,379 221,382 219,427 178,426\" stroke-width=\"2\" stroke=\"#ffff00\" fill=\"#00000001\" id=\"TSK_SCRAMBLED_0006\" name=\"Power Relay A2\" transform=\"matrix(1,0,0,1,0,0)\"></polygon>",
+    "list_inject_js": null,
+    "inline_view": false,
+    "inline_view_maximize": false,
+    "relation_id": "TSK_SCRAMBLED_0006",
+    "ref_id": "TSK_SCRAMBLED_0006",
+    "display_type": "string",
+    "checksum": "051c245dd27c8e7039d1c8748154bd41"
+  },
+  {
+    "uuid": "TSK_SCRAMBLED_0013",
+    "name": "Power Mains Circuit",
+    "list_asset_type": null,
+    "list_display_type": "embedded_area",
+    "embedded": true,
+    "embedded_svg": "<polygon points=\"94,377 20,371 14,457 94,452\" stroke-width=\"2\" stroke=\"#ffff00\" fill=\"#00000001\" id=\"TSK_SCRAMBLED_0013\" name=\"Power Mains Circuit\" transform=\"matrix(1,0,0,1,0,0)\"></polygon>",
+    "list_inject_js": null,
+    "inline_view": false,
+    "inline_view_maximize": false,
+    "relation_id": "TSK_SCRAMBLED_0013",
+    "ref_id": "TSK_SCRAMBLED_0013",
+    "display_type": "string",
+    "checksum": "c7e2dd9c624bdf948de25ff97c36365a"
+  },
+  {
+    "uuid": "TSK_SCRAMBLED_0032",
+    "name": "Lost Ticket",
+    "list_asset_type": null,
+    "list_display_type": "embedded_image",
+    "embedded": true,
+    "embedded_svg": "<image width=\"32\" height=\"16\" xlink:href=\"http://127.0.0.1:3000/by_game_asset/GM_SCRAMBLED/user_task_list-test_\" x=\"532\" y=\"674\" id=\"TSK_SCRAMBLED_0032\" name=\"Lost Ticket\" style=\"filter: opacity(0.8) contrast(1.3) brightness(0.9) drop-shadow(rgb(0, 0, 0) 2px 2px 2px);\" transform=\"matrix(0.8878153851364015,0.46019978478385176,-0.46019978478385176,0.8878153851364015,426.9335598408262,-232.6313742999423)\"></image>",
+    "list_inject_js": null,
+    "inline_view": true,
+    "inline_view_maximize": false,
+    "relation_id": "TSK_SCRAMBLED_0032",
+    "ref_id": "TSK_SCRAMBLED_0032",
+    "display_type": "button",
+    "checksum": "a8c12b6ab3225c18ecf88aed584e6341"
+  },
+  {
+    "uuid": "TSK_SCRAMBLED_0033",
+    "name": "Mysterious Symbol",
+    "list_asset_type": null,
+    "list_display_type": "embedded_image",
+    "embedded": true,
+    "embedded_svg": "<image width=\"28\" height=\"24\" xlink:href=\"http://127.0.0.1:3000/by_game_asset/GM_SCRAMBLED/user_task_list-mysterious_symbol\" x=\"510\" y=\"352\" id=\"TSK_SCRAMBLED_0033\" name=\"Mysterious Symbol\" style=\"filter: contrast(0.9) brightness(1) grayscale(0) opacity(0.7) saturate(1) blur(0.2px) hue-rotate(12deg);\" transform=\"matrix(0.9996101150403544,-0.027921638723568874,0.027921638723568874,0.9996101150403544,-0.4537645336490641,7.590286292854103)\"></image>",
+    "list_inject_js": null,
+    "inline_view": false,
+    "inline_view_maximize": false,
+    "relation_id": "TSK_SCRAMBLED_0033",
+    "ref_id": "TSK_SCRAMBLED_0033",
+    "display_type": "string",
+    "checksum": "a66a4955b56d44054cd7b14450aa01e7"
+  },
+  {
+    "uuid": "TSK_SCRAMBLED_0034",
+    "name": "Scribbles",
+    "list_asset_type": null,
+    "list_display_type": "embedded_decal",
+    "embedded": true,
+    "embedded_svg": "<image width=\"63\" height=\"10\" xlink:href=\"http://127.0.0.1:3000/by_game_asset/GM_SCRAMBLED/user_task_list-scribbles\" x=\"548\" y=\"195\" id=\"TSK_SCRAMBLED_0034\" name=\"Scribbles\" style=\"filter: brightness(0) opacity(0.5) contrast(1) saturate(0) sepia(0.7) blur(0px) drop-shadow(rgb(0, 0, 0) 0px 0px 1px);\" transform=\"matrix(0.9957246981845838,-0.09237058744656174,0.09237058744656174,0.9957246981845838,-16.243237338660947,56.99142951911705)\"></image>",
+    "list_inject_js": null,
+    "inline_view": false,
+    "inline_view_maximize": false,
+    "relation_id": "TSK_SCRAMBLED_0034",
+    "ref_id": "TSK_SCRAMBLED_0034",
+    "display_type": "string",
+    "checksum": "7aa2ad111640fb20b45398c5a4f155ae"
+  },
+  {
+    "uuid": "TSK_SCRAMBLED_0035",
+    "name": "Max",
+    "list_asset_type": null,
+    "list_display_type": "embedded_decal",
+    "embedded": true,
+    "embedded_svg": "<image width=\"58\" height=\"52\" xlink:href=\"http://127.0.0.1:3000/by_game_asset/GM_SCRAMBLED/user_task_list-max\" x=\"177\" y=\"321\" id=\"TSK_SCRAMBLED_0035\" name=\"Max\" transform=\"matrix(1,0,0,1,0,0)\"></image>",
+    "list_inject_js": null,
+    "inline_view": false,
+    "inline_view_maximize": false,
+    "relation_id": "TSK_SCRAMBLED_0035",
+    "ref_id": "TSK_SCRAMBLED_0035",
+    "display_type": "string",
+    "checksum": "5fa7094707897021711385c4d345cc99"
+  }
+]
+</script>
+</body>

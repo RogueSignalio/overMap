@@ -58,11 +58,12 @@ function scramble_load_panzoom(group_uuid) {
 
   SW.last_panzoom = null
   SW.player_panzoom_map(group_uuid,function(data){
-      SW.last_panzoom = new ScrambleMap(clone.id,data,data.tasks,{ 
+      SW.last_panzoom = new ScrambleMap(parent.id,data,data.tasks,{ 
         panzoom_height: 450,
         simple_task_func: SW.ui.open_task_id,
         open_task_func: SW.ui.open_task_id,
       })
+      parent.scrollIntoView({ behavior: 'smooth', block: 'start' });
       let img = document.querySelector(`#${group_uuid} .landscape-group-icon-cont .landscape-group-icon`);
       img.remove();
   })
