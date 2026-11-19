@@ -51,7 +51,7 @@ class OverMapBuild {
     }
     this.gui = new lil.GUI( { container: this.gui_parent_elem, width: 350 } );
     this.svg_canvas = new SVG()
-    this.svg_canvas.viewbox(0,0,this.options.width,this.options.height)
+    this.svg_canvas.viewbox(0,0,this.width,this.height)
     this.svg_elem = this.svg_canvas.addTo('#' + this.parent_id).size(this.width, this.height)
     let self = this
     this.svg_elem.mousedown(function(e) { 
