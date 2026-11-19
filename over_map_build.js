@@ -14,8 +14,14 @@ class OverMapBuild {
       },     
       ...options
     }
-    this.width = this.options.width;
-    this.height = this.options.height;
+    let max_width = this.options.width;
+    let max_height = this.options.height;
+    var mapi = new Image();
+    mapi.src = this.options.map_image
+    const scale = Math.min(max_width / mapi.width, max_height / mapi.height);
+    this.width = mapi.width * scale
+    this.height = mapi.height * scale
+
     this.parent_id = this.options.parent;
     window.selected = null
     this.parent_elem = document.getElementById( this.parent_id );
@@ -25,8 +31,8 @@ class OverMapBuild {
       document.body.appendChild(this.parent_elem);
     }
     this.parent_elem.style.position = 'relative';
-    this.parent_elem.style.width = this.options.width + 'px'
-    this.parent_elem.style.height = this.options.height + 'px'
+    this.parent_elem.style.width = this.width + 'px'
+    this.parent_elem.style.height = this.height + 'px'
     this.parent_elem.style.backgroundSize = 'cover'
     this.parent_elem.style.backgroundImage = `url('${this.options.map_image}')`;
     this.parent_elem.style.border = '1px solid #ccc'

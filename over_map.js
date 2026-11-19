@@ -12,7 +12,7 @@ class OverMap {
       launch_mode: 'manual',
       launch_icon: null, //'zoom_in.png',
       reset_icon: null, //'zoom_out.png',
-      loading_image: './loading.gif',
+      loading_image: './assets/loading.gif',
       panzoom_enabled: true,
       shape_outline: 0,
       svg_view_box: null,
@@ -38,19 +38,26 @@ class OverMap {
       style.textContent = `
         .panzoom_container {
             transition: height 0.4s ease-out, width 0.4s ease-out;
-            overflow: hidden;
+/*          
+            display: grid;
+            grid-auto-flow: row;
+*/
             display: flex;
             justify-content: center;
             align-items: center;
+            align-content: flex-start;
             /* Optional: handle overflow if image is larger than container */
             overflow: clip; 
         }
       `
       document.head.appendChild(style);
-      this.parent.innerHTML = `<img id="${this.parent.id}-loading" src="${this.cfg.loading_image}" style="position:relative;left:${this.base_width/2}px;width:${this.base_width/4}px;">`
 
     }
     this.parent.classList.add('panzoom_container')
+    if (this.cfg.loading_image) {
+      let loading_width = this.base_width/3 > 80 ? this.base_width/3 : 80
+      this.parent.innerHTML = `<img id="${this.parent.id}-loading" src="${this.cfg.loading_image}" style="z-index:100;position:absolute;width:${loading_width}px;margin:auto;">`
+    }
     this.click_up_abort = false
     if (!this.cfg.launch_icon) this.cfg.launch_icon = this.zoom_in_png();
     if (!this.cfg.reset_icon) this.cfg.reset_icon = this.zoom_out_png();
@@ -64,6 +71,7 @@ class OverMap {
   }
 
   staticMap() {
+    let time_start = new Date()
     this.parent.style.cursor = 'auto';
     let pz_e = this.htmlToNode(`<div id="${this.parent.id}-pz" style="visibility:hidden;min-width:${this.base_width}px;width:${this.base_width}px;height:${this.base_height}px;display: flex;" class="acontainer"></div>`);
     this.panzoom_elem = pz_e
@@ -103,11 +111,18 @@ class OverMap {
     this.waitForAllImages().then(() => {
       // console.log('All images, including SVG images, are loaded.');
       let loading = document.getElementById(`${this.parent.id}-loading`)
-      if (loading) { loading.remove() }
-
-      this.panzoom_elem.style.visibility = 'visible'
-      if (this.cfg.launch_mode == 'static') this.staticClickLaunch();
-      else if (this.cfg.launch_mode == 'icon') this.iconClickLaunch();
+      let time_end = new Date()
+      let diff = Math.abs(time_start - time_end);
+      diff = (diff < 1000) ? (1000 - diff) : 10;
+      setTimeout(function() {
+        if (loading) { 
+          loading.remove()
+          //setTimeout( function(){ loading.remove() },diff) 
+        }
+        this.panzoom_elem.style.visibility = 'visible'
+        if (this.cfg.launch_mode == 'static') this.staticClickLaunch();
+        else if (this.cfg.launch_mode == 'icon') this.iconClickLaunch();
+      }.bind(this),diff)
     });   
   } 
 

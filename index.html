@@ -22,20 +22,25 @@
 
 <div id="container">
 </div>
-<div id="gui" style="height:500px;">
+<div id="gui" style="height:600px;">
 </div>
 <script>
   const container = document.getElementById('container');
   var omap = null
 
+
   // window.addEventListener('load', function() {
   SVG.on(document, 'DOMContentLoaded', function() {
+    let max_height = document.getElementById('gui').clientHeight
+    let max_width = max_height //document.getElementById('game').clientWidth
+
     omap = new OverMapBuild({
       parent: 'container',
       gui_parent: 'gui',
-      width: 600,
-      height: 600,
+      width: max_width,
+      height: max_height,
       map_image: './assets/example1.png',
+//'http://127.0.0.1:3000/by_game_asset/GM_SCRAMBLED/user_group_image_pan_-engine_room', //
     })
     omap.addEmbedShape('s01','shape01',{ shape: 'rect', coords: { x: 200, y: 200, width: 50, height: 50 }})
     omap.addEmbedShape('s02','shape02',{ shape: 'ellipse', coords: { cx: 300, cy: 300, rx: 40, ry: 45 }})
