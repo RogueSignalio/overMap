@@ -12,6 +12,8 @@ class OverMap {
       launch_mode: 'manual',
       launch_icon: null, //'zoom_in.png',
       reset_icon: null, //'zoom_out.png',
+      loading_image: './loading.gif',
+      panzoom_enabled: true,
       shape_outline: 0,
       svg_view_box: null,
       svg_elements: [],
@@ -24,6 +26,10 @@ class OverMap {
       ...cfg
     }
     this.parent = document.getElementById(this.cfg.parent)
+    let rect = this.parent.getBoundingClientRect()
+    this.base_width = rect.width
+    this.base_height = rect.height
+
     this.parent.style.userSelect = "none"
     if (!document.getElementById('panzoom_styles')) {
       const style = document.createElement('style');
@@ -41,11 +47,10 @@ class OverMap {
         }
       `
       document.head.appendChild(style);
+      this.parent.innerHTML = `<img id="${this.parent.id}-loading" src="${this.cfg.loading_image}" style="position:relative;left:${this.base_width/2}px;width:${this.base_width/4}px;">`
+
     }
     this.parent.classList.add('panzoom_container')
-    let rect = this.parent.getBoundingClientRect()
-    this.base_width = rect.width
-    this.base_height = rect.height
     this.click_up_abort = false
     if (!this.cfg.launch_icon) this.cfg.launch_icon = this.zoom_in_png();
     if (!this.cfg.reset_icon) this.cfg.reset_icon = this.zoom_out_png();
@@ -97,6 +102,9 @@ class OverMap {
 
     this.waitForAllImages().then(() => {
       // console.log('All images, including SVG images, are loaded.');
+      let loading = document.getElementById(`${this.parent.id}-loading`)
+      if (loading) { loading.remove() }
+
       this.panzoom_elem.style.visibility = 'visible'
       if (this.cfg.launch_mode == 'static') this.staticClickLaunch();
       else if (this.cfg.launch_mode == 'icon') this.iconClickLaunch();
@@ -105,7 +113,7 @@ class OverMap {
 
   iconClickLaunch() {
     const icon_width = (this.base_width / 10) - 5
-    const icon_height = (this.base_height / 10) - 5
+    const icon_height = icon_width; //(this.base_height / 10) - 5
     let pz_icon = this.htmlToNode(`
 <image id="${this.parent.id}-pz-zoom" style="opacity:0.8;right:5px;top:5px;width:${icon_width}px;height:${icon_height}px;position:absolute;" src="${this.cfg.launch_icon}"/>`);
     this.launch_elem = pz_icon
@@ -135,6 +143,8 @@ class OverMap {
 
   resetMap() {
     this.panzoom.destroy()
+    this.launch_elem.remove()
+
     const e = document.getElementById(`${this.parent.id}-pz`)
     e.remove()
     this.parent.style.height = `${this.base_height}px`
