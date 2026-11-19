@@ -16,13 +16,20 @@ class ScrambleMap {
     this.parent_id = parent
     this.parent = document.getElementById(parent)
     this.parent.addEventListener('contextmenu', event => event.preventDefault());
-    // this.task_group = task_group
-    // this.task_map = task_map
+    this.task_group = task_group
+    this.task_map = task_map
+
+    this.populate()
+    this.create()
+  }
+
+  populate() {
     this.task_elements = []
     this.task_svgs = []
     this.task_actions = []
-    this.background = task_group.pan_asset_url ? task_group.pan_asset_url : task_group.asset_url
-    for (const task of task_map) {
+
+    this.background = this.task_group.pan_asset_url ? this.task_group.pan_asset_url : this.task_group.asset_url
+    for (const task of this.task_map) {
       if (task.embedded && task.embedded_svg) {
         this.task_elements.push(task)
         this.task_svgs.push(task.embedded_svg)
@@ -35,18 +42,38 @@ class ScrambleMap {
         }
       }
     }
+  }
 
-    console.log(this.task_actions)
+  update(task_group,task_map) {
+    this.task_group = task_group ? task_group : this.task_group
+    this.task_map = task_map ? task_map : this.task_map
+    this.destroy()   
+    setTimeout(function() {
+      this.populate()
+      this.create()    
+    }.bind(this),50)
+  }
+
+  create() {
     this.overmap = new OverMap({
       parent: this.parent_id,
       background: this.background, 
-      svg_base: task_group.embedded_svg,
+      svg_base: this.task_group.embedded_svg,
       svg_elements: this.task_svgs,
       svg_actions: this.task_actions,
       ...this.cfg
     })
-
   }
+
+  destroy() {
+    this.overmap.destroy()
+    this.overmap = null    
+  }
+
+  resetMap() {
+    this.overmap.resetMap()    
+  }
+
 }
 
 function scramble_load_panzoom(group_uuid) {

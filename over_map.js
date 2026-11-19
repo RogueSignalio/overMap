@@ -23,25 +23,22 @@ class OverMap {
       look_around: true,
       look_around_max: 0,
       global_look_around_max: null,
+      scroll_to_view: true,
       ...cfg
     }
     this.parent = document.getElementById(this.cfg.parent)
     let rect = this.parent.getBoundingClientRect()
     this.base_width = rect.width
     this.base_height = rect.height
-
     this.parent.style.userSelect = "none"
+
     if (!document.getElementById('panzoom_styles')) {
+      console.log('No panzoom styles')
       const style = document.createElement('style');
       style.id = 'panzoom_styles';
-      // style.type = 'text/css';
       style.textContent = `
         .panzoom_container {
             transition: height 0.4s ease-out, width 0.4s ease-out;
-/*          
-            display: grid;
-            grid-auto-flow: row;
-*/
             display: flex;
             justify-content: center;
             align-items: center;
@@ -51,9 +48,10 @@ class OverMap {
         }
       `
       document.head.appendChild(style);
-
     }
     this.parent.classList.add('panzoom_container')
+    this.parent.style.display = 'flex'
+
     if (this.cfg.loading_image) {
       let loading_width = this.base_width/3 > 80 ? this.base_width/3 : 80
       this.parent.innerHTML = `<img id="${this.parent.id}-loading" src="${this.cfg.loading_image}" style="z-index:100;position:absolute;width:${loading_width}px;margin:auto;">`
@@ -67,10 +65,10 @@ class OverMap {
       this.cfg.look_around_max = this.cfg.global_look_around_max
       if (!window.pz_look_around_cnt) window.pz_look_around_cnt = 0;
     }
-    this.staticMap()
+    this.staticMap(1300)
   }
 
-  staticMap() {
+  staticMap(delay=0) {
     let time_start = new Date()
     this.parent.style.cursor = 'auto';
     let pz_e = this.htmlToNode(`<div id="${this.parent.id}-pz" style="visibility:hidden;min-width:${this.base_width}px;width:${this.base_width}px;height:${this.base_height}px;display: flex;" class="acontainer"></div>`);
@@ -109,15 +107,13 @@ class OverMap {
     });
 
     this.waitForAllImages().then(() => {
-      // console.log('All images, including SVG images, are loaded.');
       let loading = document.getElementById(`${this.parent.id}-loading`)
       let time_end = new Date()
       let diff = Math.abs(time_start - time_end);
-      diff = (diff < 1000) ? (1000 - diff) : 10;
+      diff = (diff < delay) ? (delay - diff) : 10;
       setTimeout(function() {
         if (loading) { 
           loading.remove()
-          //setTimeout( function(){ loading.remove() },diff) 
         }
         this.panzoom_elem.style.visibility = 'visible'
         if (this.cfg.launch_mode == 'static') this.staticClickLaunch();
@@ -137,6 +133,7 @@ class OverMap {
     pz_icon.addEventListener('click', function(event) {
         this.panzoomMap()
         this.iconClickStatic()
+        if (this.cfg.scroll_to_view) { this.parent.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     }.bind(this), { once: true });
   }
 
@@ -157,16 +154,26 @@ class OverMap {
   }
 
   resetMap() {
-    this.panzoom.destroy()
-    this.launch_elem.remove()
-
+    if (this.launch_elem) { this.launch_elem.remove() }
+    if (this.panzoom) { this.panzoom.destroy() }
     const e = document.getElementById(`${this.parent.id}-pz`)
-    e.remove()
+    if (e) { e.remove() }
     this.parent.style.height = `${this.base_height}px`
     this.parent.style.width = `${this.base_width}px`
     setTimeout(function() {
       this.staticMap()
     }.bind(this),400)
+  }
+
+  destroy() {
+    if (this.launch_elem) { this.launch_elem.remove() }
+    if (this.panzoom) { this.panzoom.destroy() }
+    const e = document.getElementById(`${this.parent.id}-pz`)
+    if (e) { e.remove() }
+    this.parent.style.height = `${this.base_height}px`
+    this.parent.style.width = `${this.base_width}px`
+    // setTimeout(function() {
+    // }.bind(this),10)
   }
 
   panzoomMap(width=this.cfg.panzoom_width,height=this.cfg.panzoom_height) {
