@@ -21,7 +21,7 @@ class OverMap {
       svg_actions: [],
       panzoom_width:  null,
       panzoom_height: null,
-      panzoom_fullscreen: true,
+      panzoom_fullscreen: false,
       look_around: true,
       look_around_max: 0,
       look_around_random: 0,

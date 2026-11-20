@@ -102,7 +102,8 @@ function scramble_load_panzoom(group_uuid) {
   SW.player_panzoom_map(group_uuid,function(data){
       parent.scrollIntoView({ behavior: 'smooth', block: 'start' });
       SW.last_panzoom = new ScrambleMap(parent.id,data,data.tasks,{ 
-        panzoom_height: 450,
+        panzoom_fullscreen: true,
+        look_around_random: 15,
         simple_task_func: SW.ui.open_task_id,
         open_task_func: SW.ui.open_task_id,
       })
