@@ -9,8 +9,8 @@ class ScrambleMap {
       global_look_around_max: 2,
       look_around: true,
       panzoom_height: 600,
-      simple_task_func: function(id) { console.log('Simple Task:' + id) },
-      open_task_func: function(id) { console.log('Open Task:' + id) },
+      simple_task_func: function(id,coords) { console.log('Simple Task:' + id) },
+      open_task_func: function(id,coords) { console.log('Open Task:' + id) },
       ...cfg
     }
     this.parent_id = parent

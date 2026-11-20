@@ -7,23 +7,27 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/RogueSignalio/overBase@v0.1/css/over_demo.min.css" id="page_style">
   <style>
     html { font-size: 14px; }
-    body { margin: 20px; background-color: #000000; overflow: auto; }
+    body { background-color: #000000; overflow: auto; }
   </style>
 </head>
 <body >
-<div class="outerdiv">
+<div id="app-game" class="outerdiv" style="width: calc(100vw - 80px);height: calc(100vh - 80px);margin: 40px;">
 <div id="group-static" style="border:0px solid #FF0000;margin:auto;width:500px;height:400px;position:relative;overflow: hidden;"></div>
 </div>
 <script>
 let SW = { ui: {} }
-SW.ui.open_task_id = function open_task_id(task_id) {  alert('Open Task: ' + task_id, '#ABBDDE' ) }
-SW.ui.simple_task_id = function simple_task_id(task_id) {  alert('Simple Task: ' + task_id, '#BDDEAB' ) }
-SW.ui.simple_alert = function(task_id) {  alert('Simple Task: ' + task_id, '#FFaaaa' ) }
+SW.ui.open_task_id = function open_task_id(task_id,coords) {  alert('Open Task: ' + task_id, '#ABBDDE' ) }
+SW.ui.simple_task_id = function simple_task_id(task_id,coords) {  alert('Simple Task: ' + task_id, '#BDDEAB' ) }
+SW.ui.simple_alert = function(task_id,coords) {  alert('Simple Task: ' + task_id, '#FFaaaa' ) }
 
 document.addEventListener('DOMContentLoaded', function() {
   window.om = new ScrambleMap('group-static',task_group,task_list,{
         simple_task_func: SW.ui.simple_task_id,
         open_task_func: SW.ui.open_task_id,
+        panzoom_fullscreen: true,
+        panzoom_parent: 'app-game',
+        panzoom_margin: 40,
+        look_around_random: 15,
   })
 })
 
