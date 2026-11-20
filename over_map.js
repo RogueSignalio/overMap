@@ -8,6 +8,7 @@ class OverMap {
       parent: null,
       asset_path: '/assets',
       background: 'example.jpg',
+      panzoom_background: null,
       svg_base: null,
       launch_mode: 'manual',
       launch_icon: null, //'zoom_in.png',
@@ -20,17 +21,26 @@ class OverMap {
       svg_actions: [],
       panzoom_width:  null,
       panzoom_height: null,
+      panzoom_fullscreen: true,
       look_around: true,
       look_around_max: 0,
+      look_around_random: 0,
       global_look_around_max: null,
       scroll_to_view: true,
       ...cfg
     }
     this.parent = document.getElementById(this.cfg.parent)
+    // this.pz_parent = document.getElementById(this.cfg.parent)
+
     let rect = this.parent.getBoundingClientRect()
     this.base_width = rect.width
     this.base_height = rect.height
     this.parent.style.userSelect = "none"
+    console.log(this.cfg.panzoom_background )
+    
+    if (!this.cfg.panzoom_background) { this.cfg.panzoom_background = this.cfg.background; }
+
+    console.log(this.cfg.panzoom_background )
 
     if (!document.getElementById('panzoom_styles')) {
       console.log('No panzoom styles')
@@ -46,16 +56,21 @@ class OverMap {
             /* Optional: handle overflow if image is larger than container */
             overflow: clip; 
         }
+        .full-screen-panzoom_container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: calc(100% - 40px);
+            height: calc(100% - 40px);
+            border-radius:10px;
+            background-color: rgba(0, 0, 0, 0.8); /* Optional: semi-transparent background */
+        }        
       `
       document.head.appendChild(style);
     }
     this.parent.classList.add('panzoom_container')
     this.parent.style.display = 'flex'
-
-    if (this.cfg.loading_image) {
-      let loading_width = this.base_width/3 > 80 ? this.base_width/3 : 80
-      this.parent.innerHTML = `<img id="${this.parent.id}-loading" src="${this.cfg.loading_image}" style="z-index:100;position:absolute;width:${loading_width}px;margin:auto;">`
-    }
+    this.showLoading();
     this.click_up_abort = false
     if (!this.cfg.launch_icon) this.cfg.launch_icon = this.zoom_in_png();
     if (!this.cfg.reset_icon) this.cfg.reset_icon = this.zoom_out_png();
@@ -68,12 +83,20 @@ class OverMap {
     this.staticMap(1300)
   }
 
+  showLoading() {
+    if (this.cfg.loading_image) {
+      let loading_width = this.base_width/3 > 80 ? this.base_width/3 : 80
+      this.parent.innerHTML = `<img id="${this.parent.id}-loading" src="${this.cfg.loading_image}" style="z-index:100;position:absolute;width:${loading_width}px;margin:auto;">`
+    }
+  }
+
   staticMap(delay=0) {
     let time_start = new Date()
     this.parent.style.cursor = 'auto';
-    let pz_e = this.htmlToNode(`<div id="${this.parent.id}-pz" style="visibility:hidden;min-width:${this.base_width}px;width:${this.base_width}px;height:${this.base_height}px;display: flex;" class="acontainer"></div>`);
+    let pz_e = this.htmlToNode(`<div id="${this.parent.id}-pz" style="visibility:hidden;min-width:${this.base_width}px;width:${this.base_width}px;height:${this.base_height}px;display: flex;" class="panzoom_static_container"></div>`);
     this.panzoom_elem = pz_e
     let pz_bckgr = this.htmlToNode(`<img id="${this.parent.id}-pz-bckgr" src="${this.cfg.background}" style="width:auto;height:100%;position: relative;"/>`)
+    this.back_elem = pz_bckgr
     let pz_svg = null
     if (!this.cfg.svg_base) {
       pz_svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -142,8 +165,23 @@ class OverMap {
     this.launch_elem.style.cursor = 'pointer';
 
     this.launch_elem.addEventListener('click', function(event) {
+        this.resetMap(400)
+    }.bind(this), { once: true });
+  }
+
+  iconClickModal() {
+    const icon_width = (this.base_width / 10) - 5
+    const icon_height = icon_width; //(this.base_height / 10) - 5
+    let pz_icon = this.htmlToNode(`
+<image id="${this.parent.id}-pz-zoom-modal" style="opacity:0.8;right:5px;top:5px;width:${icon_width}px;height:${icon_height}px;position:absolute;" src="${this.cfg.launch_icon}"/>`);
+    pz_icon.src = `${this.cfg.reset_icon}`
+    pz_icon.style.cursor = 'pointer';
+
+    pz_icon.addEventListener('click', function(event) {
         this.resetMap()
     }.bind(this), { once: true });
+
+    this.pz_modal.appendChild(pz_icon)
   }
 
   staticClickLaunch() {
@@ -153,41 +191,33 @@ class OverMap {
     }.bind(this), { once: true });
   }
 
-  resetMap() {
-    if (this.launch_elem) { this.launch_elem.remove() }
-    if (this.panzoom) { this.panzoom.destroy() }
-    const e = document.getElementById(`${this.parent.id}-pz`)
-    if (e) { e.remove() }
-    this.parent.style.height = `${this.base_height}px`
-    this.parent.style.width = `${this.base_width}px`
+  resetMap(timer=10) {
+    this.destroy(timer > 250 ? timer : 0)
     setTimeout(function() {
-      this.staticMap()
-    }.bind(this),400)
+      this.staticMap(timer > 250 ? timer : 0)
+    }.bind(this),timer)
   }
 
-  destroy() {
+  destroy(timer=0) {
+    this.parent.style.display = 'flex'
+    if (timer > 0) { this.showLoading(); }
     if (this.launch_elem) { this.launch_elem.remove() }
     if (this.panzoom) { this.panzoom.destroy() }
     const e = document.getElementById(`${this.parent.id}-pz`)
     if (e) { e.remove() }
+    if (this.pz_modal) { this.pz_modal.remove(); }
     this.parent.style.height = `${this.base_height}px`
     this.parent.style.width = `${this.base_width}px`
-    // setTimeout(function() {
-    // }.bind(this),10)
   }
 
   panzoomMap(width=this.cfg.panzoom_width,height=this.cfg.panzoom_height) {
-    const elem = this.panzoom_elem 
+    const elem = this.cfg.panzoom_fullscreen ? this.panzoom_modal() : this.panzoom_elem 
     const panzoom_width = width ? width : this.base_width
     const panzoom_height = height ? height : this.base_height
     const zoom_x_offset = (this.base_width - panzoom_width) / 2
     const zoom_y_offset = (this.base_height - panzoom_height) / 2
 
-    // let svgElements = document.querySelectorAll('svg *');
-    // svgElements.forEach(el => {
-    //   el.style.cursor = 'pointer';
-    //   el.setAttribute('stroke-width',0)
-    // });
+    this.back_elem.src = this.cfg.panzoom_background
 
     this.panzoom = Panzoom(elem,{
       maxScale: 10,
@@ -202,10 +232,9 @@ class OverMap {
       startY: 0,
     })
 
-    this.panzoom_elem.addEventListener('wheel', this.panzoom.zoomWithWheel)
-    this.panzoom_elem.addEventListener("panzoompan", (event) => {
+    elem.addEventListener('wheel', this.panzoom.zoomWithWheel)
+    elem.addEventListener("panzoompan", (event) => {
       window.pz_click_up_abort = true
-      // console.log('pzs ' + window.pz_click_up_abort)
     })
 
     for (const action of this.cfg.svg_actions) {
@@ -221,26 +250,48 @@ class OverMap {
         svg_el.addEventListener('pointerup', function(event) {
           //console.log('svge_up ' + window.pz_click_up_abort)
           if (!window.pz_click_up_abort) {
-          //console.log('svge_up ' + action[1].name + '("' + action[0] + '")')
             action[1](action[0])
           }
         });
       }
     }
 
-    // elem.parentElement.style.pointerEvents = 'none';
+    if (!this.cfg.panzoom_fullscreen) { this.panzoom_resize(width,height); }
+    else {  this.iconClickModal() }
+    this.look_about(width,height)
+  } 
+
+  panzoom_resize(width,height) {
+    const elem = this.panzoom_elem 
     elem.parentElement.style.display = 'block'
     elem.parentElement.style.visibility = 'visible'
-
     if (height) {
       setTimeout(function() { elem.parentElement.style.height = `${height}px` },0)
     }
     if (width) {
       setTimeout(function() { elem.parentElement.style.width = `${width}px` },0)
     }
-    // elem.parentElement.classList.add('expanded');
-    // document.getElementById('group-static').style.visibility = 'collapse'
-    // document.getElementById('group-static').style.display = 'none'
+  }
+
+  panzoom_modal() {
+    this.pz_modal = this.htmlToNode(`<div id="${this.parent.id}-pz-modal" class="full-screen-panzoom_container panzoom_modal_container"></div>`);
+    this.panzoom_modal_elem = this.panzoom_elem.cloneNode(true)
+    this.panzoom_elem.remove()
+    document.body.appendChild(this.pz_modal)
+    this.pz_modal.appendChild(this.panzoom_modal_elem)
+    let back = document.getElementById(`${this.parent.id}-pz-bckgr`)
+    back.src = this.cfg.panzoom_background
+    this.panzoom_elem = this.panzoom_modal_elem
+    this.modal_resizes = 0
+    return this.panzoom_modal_elem
+  }
+
+  look_about(width=this.cfg.panzoom_width,height=this.cfg.panzoom_height) {
+    const elem = this.panzoom_elem 
+    const panzoom_width = width ? width : this.base_width
+    const panzoom_height = height ? height : this.base_height
+    const zoom_x_offset = (this.base_width - panzoom_width) / 2
+    const zoom_y_offset = (this.base_height - panzoom_height) / 2
 
     let easing4 = 'linear(0, -0.022 6.2%, -0.114 17.8%, -0.141 22.5%, -0.146 27.3%, -0.119 31.7%, -0.036 37%, 0.107 42%, 0.301 46.5%, 0.819 56.1%, 0.976 60.6%, 1.08 65.3%, 1.137 70.5%, 1.147 73.3%, 1.145 76.2%, 1.119 81.6%, 1.02 94.1%, 1)'
     let easing3 = 'linear(0, 0.49 7.4%, 0.864 15.3%, 1.005 19.4%, 1.12 23.7%, 1.206 28.1%, 1.267 32.8%, 1.296 36.4%, 1.311 40.2%, 1.313 44.2%, 1.301 48.6%, 1.252 56.9%, 1.105 74.4%, 1.048 82.5%, 1.011 91.1%, 1)'
@@ -258,8 +309,15 @@ class OverMap {
     let duration = 200
 
     if (this.cfg.global_look_around_max) this.look_around_cnt = window.pz_look_around_cnt
+    let do_look_around = (this.cfg.look_around) && ((this.cfg.look_around_max == 0) || (this.look_around_cnt < this.cfg.look_around_max))
+    if (!do_look_around && this.cfg.look_around_random > 0) {
+      let random_roll = (Math.floor(Math.random() * (100 - 1 + 1)) + 1)
+      console.log(random_roll,this.cfg.look_around_random )
 
-    if ((this.cfg.look_around) && ((this.cfg.look_around_max == 0) || (this.look_around_cnt < this.cfg.look_around_max))) {
+      do_look_around = (random_roll <= this.cfg.look_around_random ) ? true : false
+    }
+
+    if (do_look_around) {
         setTimeout(function() {
           this.panzoom.zoom(2.2, { focal: { x: zoom_x_offset, y: zoom_y_offset }, animate: true, duration: duration, easing: 'ease-out', relative: true }) 
           duration += 50
@@ -275,7 +333,11 @@ class OverMap {
               this.panzoom.pan(0, 50, { animate: true, duration: 900, relative: false, easing: easing4 });
           }.bind(this),duration)
           duration += 950
-          setTimeout(function() { elem.style.pointerEvents = 'auto'; }.bind(this),duration)
+          setTimeout(function() { 
+            elem.style.pointerEvents = 'auto'; 
+            if (this.cfg.panzoom_fullscreen) { this.resize_observe() } //.bind(this),duration + 100)
+          }.bind(this),duration)
+
         }.bind(this),10)
 
         this.look_around_cnt++;
@@ -285,11 +347,44 @@ class OverMap {
         setTimeout(function() { 
           this.panzoom.zoom(2.2, { focal: { x: zoom_x_offset, y: zoom_y_offset }, animate: true, duration: duration, easing: 'ease-out', relative: true }) 
           duration += 50
-          setTimeout(function() { elem.style.pointerEvents = 'auto'; }.bind(this),duration)          
+          setTimeout(function() { 
+            elem.style.pointerEvents = 'auto'; 
+            if (this.cfg.panzoom_fullscreen) { this.resize_observe() } //.bind(this),duration + 100)
+          }.bind(this),duration)          
         }.bind(this),10)
       }
+  }
 
-  } 
+  resize_observe() {
+    let debounceTimer;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      clearTimeout(debounceTimer);
+  
+    // Set new timeout (e.g., 250ms delay)
+      debounceTimer = setTimeout(() => {
+        entries.forEach(entry => {
+        // Execute your post-resize logic here
+          if (this.modal_resizes > 0) {
+            let x = this.panzoom.getPan().x
+            let y = this.panzoom.getPan().y
+            this.panzoom.reset({ animate:false })
+            setTimeout( function() { 
+              this.panzoom.reset({  animate:false }); 
+              // this.panzoom.reset({  animate:false, focal: { x:x, y:y } }); 
+              // this.panzoom.pan(x,y); 
+            }.bind(this),1)
+          }
+
+          this.modal_resizes += 1
+          // console.log('Resize completed for div:',this.modal_resizes, entry.contentRect);
+        });
+      }, 250);
+    });
+
+    // Start observing the div
+    resizeObserver.observe(this.pz_modal);      
+  }
 
   waitForAllImages() {
     // 1. Handle standard HTML <img> tags

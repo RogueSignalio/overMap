@@ -28,7 +28,10 @@ class ScrambleMap {
     this.task_svgs = []
     this.task_actions = []
 
+    // this.background = this.task_group.asset_url // this.task_group.pan_asset_url ? this.task_group.pan_asset_url : this.task_group.asset_url
     this.background = this.task_group.pan_asset_url ? this.task_group.pan_asset_url : this.task_group.asset_url
+    //this.panzoom_background = this.task_group.pan_asset_url ? this.task_group.pan_asset_url : this.task_group.asset_url
+    console.log(this.panzoom_background)
     for (const task of this.task_map) {
       if (task.embedded && task.embedded_svg) {
         this.task_elements.push(task)
@@ -47,17 +50,28 @@ class ScrambleMap {
   update(task_group,task_map) {
     this.task_group = task_group ? task_group : this.task_group
     this.task_map = task_map ? task_map : this.task_map
-    this.destroy()   
+    // this.destroy()   
     setTimeout(function() {
       this.populate()
-      this.create()    
+      this.recreate()    
+      this.resetMap()
     }.bind(this),50)
+  }
+
+  recreate() {
+    this.overmap.cfg = {
+      ...this.overmap.cfg,
+      svg_base: this.task_group.embedded_svg,
+      svg_elements: this.task_svgs,
+      svg_actions: this.task_actions,      
+    }
   }
 
   create() {
     this.overmap = new OverMap({
       parent: this.parent_id,
       background: this.background, 
+      // panzoom_background: this.panzoom_background, 
       svg_base: this.task_group.embedded_svg,
       svg_elements: this.task_svgs,
       svg_actions: this.task_actions,
