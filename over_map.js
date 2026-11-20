@@ -24,15 +24,17 @@ class OverMap {
       panzoom_fullscreen: false,
       panzoom_parent: null,
       panzoom_margin: 0,
-      panzoom_z_index: 20,
+      panzoom_z_index: 'auto',
       look_around: true,
       look_around_max: 0,
       look_around_random: 0,
       global_look_around_max: null,
       scroll_to_view: true,
+      debug_on: false,
       ...cfg
     }
     this.parent = document.getElementById(this.cfg.parent)
+    this.debug = this.cfg.debug_on
     // this.pz_parent = document.getElementById(this.cfg.parent)
 
     let rect = this.parent.getBoundingClientRect()
@@ -261,11 +263,11 @@ class OverMap {
         });
         svg_el.addEventListener('pointerup', function(event) {
           let params = { x: event.clientX , y: event.clientY, elem_id: event.target.id }
-          console.log('svge_up ',this,params,action[0],action[1],window.pz_click_up_abort)
+          this.debug && console.log('svge_up ',event.target,params,action[0],action[1],window.pz_click_up_abort)
           if (!window.pz_click_up_abort) {
             action[1](action[0],params)
           }
-        });
+        }.bind(this));
       }
     }    
   }
@@ -292,12 +294,14 @@ class OverMap {
       let marg = this.cfg.panzoom_margin
       let mw = rect.width - (marg * 2)
       let mh = rect.height - (marg * 2)
-      pz_style = `width:${mw}px;height:${mh}px;top:${rect.top+marg}px;left:${rect.left+marg}px;`
+      pz_style = `width:${mw}px;height:${mh}px;top:${rect.top+marg}px;left:${rect.left+marg}px;z-index:${this.cfg.panzoom_z_index};`
     } else {
       this.panzoom_parent = document.body
+      pz_style = `z-index:${this.cfg.panzoom_z_index};`
     }
 
     this.pz_modal = this.htmlToNode(`<div id="${this.parent.id}-pz-modal" class="full-screen-panzoom_container panzoom_modal_container" style="${pz_style}"></div>`);
+    this.pz_modal.addEventListener('contextmenu', event => event.preventDefault());
     this.panzoom_modal_elem = this.panzoom_elem.cloneNode(true)
     this.panzoom_elem.remove()
     document.body.appendChild(this.pz_modal)
